@@ -1,0 +1,46 @@
+type Board {
+  id: ID!
+  size: Int!
+  start: Point!
+  target: Point!
+  path: [Point!]!
+}
+
+type Point {
+  x: Int!
+  y: Int!
+}
+
+type Query {
+  boards: [Board!]!
+  board(id: ID!): Board!
+}
+
+input NewPoint {
+  x: Int!
+  y: Int!
+}
+
+input UpdatePoint {
+    x: Int
+    y: Int
+}
+
+input NewBoard {
+  size: Int!
+  start: NewPoint!
+  target: NewPoint!
+}
+
+input UpdateBoard {
+    id: ID!
+    size: Int
+    start: NewPoint
+    target: NewPoint
+}
+
+type Mutation {
+  createBoard(input: NewBoard!): Board!
+  updateBoard(board: UpdateBoard!): Board!
+  deleteBoard(id: ID!): Boolean
+}

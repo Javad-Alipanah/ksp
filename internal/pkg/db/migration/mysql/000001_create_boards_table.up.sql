@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS Boards(
+    id INT NOT NULL UNIQUE AUTO_INCREMENT,
+    size INT NOT NULL,
+    start VARCHAR (256) NOT NULL,
+    target VARCHAR (256) NOT NULL,
+    path VARCHAR (8192),
+    PRIMARY KEY (id)
+)
