@@ -9,6 +9,7 @@ import (
 	"errors"
 	"ksp/graph/generated"
 	"ksp/graph/model"
+	"ksp/internal/pkg/alg"
 	database "ksp/internal/pkg/db/mysql"
 	db_model "ksp/internal/pkg/model"
 	"strconv"
@@ -21,11 +22,11 @@ func (r *mutationResolver) CreateBoard(ctx context.Context, input model.NewBoard
 		return nil, errors.New("minimum size is 3")
 	}
 
-	if input.Start.X > input.Size || input.Start.Y > input.Size || input.Start.X < 0 || input.Start.Y < 0 {
+	if input.Start.X >= input.Size || input.Start.Y >= input.Size || input.Start.X < 0 || input.Start.Y < 0 {
 		return nil, errors.New("invalid start point")
 	}
 
-	if input.Target.X > input.Size || input.Target.Y > input.Size || input.Target.X < 0 || input.Target.Y < 0 {
+	if input.Target.X >= input.Size || input.Target.Y >= input.Size || input.Target.X < 0 || input.Target.Y < 0 {
 		return nil, errors.New("invalid target point")
 	}
 
@@ -40,6 +41,40 @@ func (r *mutationResolver) CreateBoard(ctx context.Context, input model.NewBoard
 	}
 
 	id := board.Save()
+
+	// calculate path asynchronously
+	go func() {
+		source := model.Point{
+			X: input.Start.X,
+			Y: input.Start.Y,
+		}
+
+		sink := model.Point{
+			X: input.Target.X,
+			Y: input.Target.Y,
+		}
+		path := alg.CalcPath(source, sink, input.Size)
+		if path != nil {
+			jsonVal, err := json.Marshal(path)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			board.ID = strconv.FormatInt(id, 10)
+			board.Path = string(jsonVal)
+			trx, err := database.Db.Begin()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			_ = board.Update(trx)
+			err = trx.Commit()
+			if err != nil {
+				log.Error(err)
+			}
+		}
+	}()
+
 	return &model.Board{
 		ID:     strconv.FormatInt(id, 10),
 		Size:   input.Size,
@@ -81,17 +116,6 @@ func (r *mutationResolver) UpdateBoard(ctx context.Context, board model.UpdateBo
 		prev.Size = *newSize
 	}
 
-	size := prev.Size
-	if board.Start != nil && (board.Start.X > size || board.Start.Y > size || board.Start.X < 0 || board.Start.Y < 0) {
-		_ = tx.Rollback()
-		return nil, errors.New("invalid start point")
-	}
-
-	if board.Target != nil && (board.Target.X > size || board.Target.Y > size || board.Target.X < 0 || board.Target.Y < 0) {
-		_ = tx.Rollback()
-		return nil, errors.New("invalid target point")
-	}
-
 	if newStart = board.Start; newStart != nil {
 		jsonVal, _ := json.Marshal(*newStart)
 		prev.Start = string(jsonVal)
@@ -114,6 +138,17 @@ func (r *mutationResolver) UpdateBoard(ctx context.Context, board model.UpdateBo
 		}
 	}
 
+	size := prev.Size
+	if newStart.X >= size || newStart.Y >= size || newStart.X < 0 || newStart.Y < 0 {
+		_ = tx.Rollback()
+		return nil, errors.New("incompatible input")
+	}
+
+	if newTarget.X >= size || newTarget.Y >= size || newTarget.X < 0 || newTarget.Y < 0 {
+		_ = tx.Rollback()
+		return nil, errors.New("incompatible input")
+	}
+
 	prev.ID = board.ID
 	prev.Path = "[]"
 	prev.Update(tx)
@@ -122,6 +157,38 @@ func (r *mutationResolver) UpdateBoard(ctx context.Context, board model.UpdateBo
 		log.Error(err)
 		return nil, errors.New("internal server error")
 	}
+
+	// calculate path asynchronously
+	go func() {
+		source := model.Point{
+			X: newStart.X,
+			Y: newStart.Y,
+		}
+
+		sink := model.Point{
+			X: newTarget.X,
+			Y: newTarget.Y,
+		}
+		path := alg.CalcPath(source, sink, prev.Size)
+		if path != nil {
+			jsonVal, err := json.Marshal(path)
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			prev.Path = string(jsonVal)
+			trx, err := database.Db.Begin()
+			if err != nil {
+				log.Fatal(err)
+			}
+
+			_ = prev.Update(trx)
+			err = trx.Commit()
+			if err != nil {
+				log.Error(err)
+			}
+		}
+	}()
 
 	return &model.Board{
 		ID:   prev.ID,
