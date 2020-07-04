@@ -1,17 +1,17 @@
-Knight Shortest Path
----
+# Knight Shortest Path
+
 
 ###### This is the solution to the knight's shortest path problem in Golang
 
 # Table of Contents
 
 1. [Problem Description](#problem-description)
-2. [How to Setup](#how-to-run)
+2. [How to Run](#how-to-run)
 3. [GraphQL Endpoint](#graphql-endpoint)
 4. [Example](#example)
 
 ## Problem Description
-The problem is a follows:
+The problem is as follows:
 
     Assume that you have an N*N chess board with a knight in some cell called "start" point, and an arbitrary cell called "target" point.
     Calculate the shortest path for the knight from start to target (the knight may move two cells vertically and one cell horizontally, or two cells horizontally and one cell vertically).
@@ -26,7 +26,7 @@ The problem is a follows:
     ```bash
     sudo docker-compose up -d
     ```
-Now the GraphQL endpoint to interact with the project is available at [localhost](http://localhot)
+Now the GraphQL endpoint is available at [localhost](http://localhot)
  
 To see the project logs run:
 ```bash
@@ -34,11 +34,11 @@ sudo docker-compose logs [-f]
 ```
 
 # GraphQL Endpoint
-The project has a GraphQL endpoint by default at [localhost](http://localhot) from which you can interact with code and calculate the answer for different outputs.
+The project has a GraphQL endpoint by default at [localhost](http://localhot) from which you can interact with the application and calculate the answer for different outputs.
 
 If you are not familiar with GraphQL you can visit [here](https://graphql.org/) for introductory info.
 
-If you visit the project root at [localhost](http://localhot) you can see an interactive console form which you can execute these queries and mutations:
+If you visit the project root at [localhost](http://localhot) you can see an interactive console from which you can execute these queries and mutations:
 ###### Note: The (0, 0) cell is the upper left cell in your board
 
 ## Queries
@@ -209,34 +209,34 @@ mutation {
     }
     ```
 
-Which in this case the output is:
-```json
-{
-  "data": {
-    "board": {
-      "path": [
-        {
-          "x": 3,
-          "y": 7
-        },
-        {
-          "x": 4,
-          "y": 5
-        },
-        {
-          "x": 5,
-          "y": 3
-        },
-        {
-          "x": 4,
-          "y": 1
-        },
-        {
-          "x": 6,
-          "y": 0
+3. Verify the Output:
+    ```json
+    {
+      "data": {
+        "board": {
+          "path": [
+            {
+              "x": 3,
+              "y": 7
+            },
+            {
+              "x": 4,
+              "y": 5
+            },
+            {
+              "x": 5,
+              "y": 3
+            },
+            {
+              "x": 4,
+              "y": 1
+            },
+            {
+              "x": 6,
+              "y": 0
+            }
+          ]
         }
-      ]
+      }
     }
-  }
-}
-```
+    ```
