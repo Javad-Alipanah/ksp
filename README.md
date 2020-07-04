@@ -22,7 +22,11 @@ The problem is as follows:
     ```bash
     git clone git@github.com:Javad-Alipanah/ksp.git && cd ksp
     ```
-2. Run:
+2. Build:
+    ```bash
+    make static
+    ```
+3. Run:
     ```bash
     sudo docker-compose up -d
     ```
