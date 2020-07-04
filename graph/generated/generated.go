@@ -52,7 +52,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateBoard func(childComplexity int, input model.NewBoard) int
+		CreateBoard func(childComplexity int, board model.NewBoard) int
 		DeleteBoard func(childComplexity int, id string) int
 		UpdateBoard func(childComplexity int, board model.UpdateBoard) int
 	}
@@ -69,7 +69,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
-	CreateBoard(ctx context.Context, input model.NewBoard) (*model.Board, error)
+	CreateBoard(ctx context.Context, board model.NewBoard) (*model.Board, error)
 	UpdateBoard(ctx context.Context, board model.UpdateBoard) (*model.Board, error)
 	DeleteBoard(ctx context.Context, id string) (*bool, error)
 }
@@ -138,7 +138,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateBoard(childComplexity, args["input"].(model.NewBoard)), true
+		return e.complexity.Mutation.CreateBoard(childComplexity, args["board"].(model.NewBoard)), true
 
 	case "Mutation.deleteBoard":
 		if e.complexity.Mutation.DeleteBoard == nil {
@@ -303,7 +303,7 @@ input UpdateBoard {
 }
 
 type Mutation {
-  createBoard(input: NewBoard!): Board!
+  createBoard(board: NewBoard!): Board!
   updateBoard(board: UpdateBoard!): Board!
   deleteBoard(id: ID!): Boolean
 }`, BuiltIn: false},
@@ -318,13 +318,13 @@ func (ec *executionContext) field_Mutation_createBoard_args(ctx context.Context,
 	var err error
 	args := map[string]interface{}{}
 	var arg0 model.NewBoard
-	if tmp, ok := rawArgs["input"]; ok {
+	if tmp, ok := rawArgs["board"]; ok {
 		arg0, err = ec.unmarshalNNewBoard2kspᚋgraphᚋmodelᚐNewBoard(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["input"] = arg0
+	args["board"] = arg0
 	return args, nil
 }
 
@@ -614,7 +614,7 @@ func (ec *executionContext) _Mutation_createBoard(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateBoard(rctx, args["input"].(model.NewBoard))
+		return ec.resolvers.Mutation().CreateBoard(rctx, args["board"].(model.NewBoard))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

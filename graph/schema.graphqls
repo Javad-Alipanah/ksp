@@ -40,7 +40,7 @@ input UpdateBoard {
 }
 
 type Mutation {
-  createBoard(input: NewBoard!): Board!
+  createBoard(board: NewBoard!): Board!
   updateBoard(board: UpdateBoard!): Board!
   deleteBoard(id: ID!): Boolean
 }

@@ -17,24 +17,24 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func (r *mutationResolver) CreateBoard(ctx context.Context, input model.NewBoard) (*model.Board, error) {
-	if input.Size < 3 {
+func (r *mutationResolver) CreateBoard(ctx context.Context, newBoard model.NewBoard) (*model.Board, error) {
+	if newBoard.Size < 3 {
 		return nil, errors.New("minimum size is 3")
 	}
 
-	if input.Start.X >= input.Size || input.Start.Y >= input.Size || input.Start.X < 0 || input.Start.Y < 0 {
+	if newBoard.Start.X >= newBoard.Size || newBoard.Start.Y >= newBoard.Size || newBoard.Start.X < 0 || newBoard.Start.Y < 0 {
 		return nil, errors.New("invalid start point")
 	}
 
-	if input.Target.X >= input.Size || input.Target.Y >= input.Size || input.Target.X < 0 || input.Target.Y < 0 {
+	if newBoard.Target.X >= newBoard.Size || newBoard.Target.Y >= newBoard.Size || newBoard.Target.X < 0 || newBoard.Target.Y < 0 {
 		return nil, errors.New("invalid target point")
 	}
 
-	start, _ := json.Marshal(input.Start)
-	target, _ := json.Marshal(input.Target)
+	start, _ := json.Marshal(newBoard.Start)
+	target, _ := json.Marshal(newBoard.Target)
 
 	board := db_model.Board{
-		Size:   input.Size,
+		Size:   newBoard.Size,
 		Start:  string(start),
 		Target: string(target),
 		Path:   "[]",
@@ -45,15 +45,15 @@ func (r *mutationResolver) CreateBoard(ctx context.Context, input model.NewBoard
 	// calculate path asynchronously
 	go func() {
 		source := model.Point{
-			X: input.Start.X,
-			Y: input.Start.Y,
+			X: newBoard.Start.X,
+			Y: newBoard.Start.Y,
 		}
 
 		sink := model.Point{
-			X: input.Target.X,
-			Y: input.Target.Y,
+			X: newBoard.Target.X,
+			Y: newBoard.Target.Y,
 		}
-		path := alg.CalcPath(source, sink, input.Size)
+		path := alg.CalcPath(source, sink, newBoard.Size)
 		if path != nil {
 			jsonVal, err := json.Marshal(path)
 			if err != nil {
@@ -77,9 +77,9 @@ func (r *mutationResolver) CreateBoard(ctx context.Context, input model.NewBoard
 
 	return &model.Board{
 		ID:     strconv.FormatInt(id, 10),
-		Size:   input.Size,
-		Start:  &model.Point{X: input.Start.X, Y: input.Start.Y},
-		Target: &model.Point{X: input.Target.X, Y: input.Target.Y},
+		Size:   newBoard.Size,
+		Start:  &model.Point{X: newBoard.Start.X, Y: newBoard.Start.Y},
+		Target: &model.Point{X: newBoard.Target.X, Y: newBoard.Target.Y},
 		Path:   nil,
 	}, nil
 }
