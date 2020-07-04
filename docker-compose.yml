@@ -4,6 +4,7 @@ services:
   web:
     image: reg.alipanah.me/ksp
     container_name: web
+    restart: always
     build:
       context: .
       dockerfile: build/Dockerfile
